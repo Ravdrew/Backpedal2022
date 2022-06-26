@@ -20,6 +20,8 @@ var AudioTimer = Timer()
 
 class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
     
+    var playerLoaded:Bool = false
+    
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
     @IBOutlet weak var Write: UITextView!
@@ -79,6 +81,13 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             print(soundPlayer.currentTime)
             updateTimer()
         }
+    }
+    
+    @IBAction func exportButton(_ sender: Any) {
+        let activityVC = UIActivityViewController(activityItems: ["google.com"], applicationActivities: nil)
+        activityVC.popoverPresentationController?.sourceView = self.view
+        
+        self.present(activityVC, animated: true, completion: nil)
     }
     
     @IBOutlet weak var MultiButton: UIButton!
@@ -291,7 +300,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             cnote.content = self.Write.text
             loaded = false
             
-            soundPlayer.pause()
+            if(playerLoaded) {soundPlayer.pause()}
         }
     }
     
@@ -357,12 +366,11 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
         
         do {
-            print(cnote.audio)
             soundPlayer = try AVAudioPlayer(data: cnote.audio!)
-            print("success!!!!")
             soundPlayer.delegate = self
             soundPlayer.prepareToPlay()
             soundPlayer.volume = 1.0
+            playerLoaded = false
         } catch {
             print(error)
         }

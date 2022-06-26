@@ -109,6 +109,11 @@
                                 <action selector="TitleChange:" destination="JEX-9P-axG" eventType="editingDidEnd" id="6xR-bw-H2r"/>
                             </connections>
                         </textField>
+                        <barButtonItem key="rightBarButtonItem" image="square.and.arrow.up" catalog="system" id="lEP-Nu-qVY">
+                            <connections>
+                                <action selector="exportButton:" destination="JEX-9P-axG" id="dDY-oK-4vr"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="MultiButton" destination="Bgi-Nk-rR7" id="IXm-fu-Ehw"/>
@@ -204,6 +209,7 @@
         <image name="gobackward.10" catalog="system" width="121" height="128"/>
         <image name="goforward.10" catalog="system" width="121" height="128"/>
         <image name="mic.circle" catalog="system" width="128" height="121"/>
+        <image name="square.and.arrow.up" catalog="system" width="115" height="128"/>
         <systemColor name="darkTextColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
