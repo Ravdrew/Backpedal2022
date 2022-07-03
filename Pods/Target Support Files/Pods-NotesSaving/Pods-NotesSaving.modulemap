@@ -1,0 +1,6 @@
+framework module Pods_NotesSaving {
+  umbrella header "Pods-NotesSaving-umbrella.h"
+
+  export *
+  module * { export * }
+}

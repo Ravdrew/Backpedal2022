@@ -24,6 +24,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
+    
     @IBOutlet weak var Write: UITextView!
     @IBOutlet weak var TitleTextBox: UITextField!
     
@@ -84,7 +85,15 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     }
     
     @IBAction func exportButton(_ sender: Any) {
-        let activityVC = UIActivityViewController(activityItems: ["google.com"], applicationActivities: nil)
+        var audioTrack: Data?
+        
+        do{
+            audioTrack = try Data(contentsOf: soundRecorder.url)
+        } catch {
+            audioTrack = nil
+        }
+        
+        let activityVC = UIActivityViewController(activityItems: [Write.text ?? "", audioTrack ?? ""], applicationActivities: nil)
         activityVC.popoverPresentationController?.sourceView = self.view
         
         self.present(activityVC, animated: true, completion: nil)
@@ -332,7 +341,9 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         
         do{
             audioTrack = try Data(contentsOf: soundRecorder.url)
-        } catch {}
+        } catch {
+            audioTrack = nil
+        }
         
         cnote.audio = audioTrack
     }
@@ -352,7 +363,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                               AVSampleRateKey : 44100.2] as [String : Any]
         
         do {
-            soundRecorder = try AVAudioRecorder(url: audioFilename, settings: recordSetting )
+            soundRecorder = try AVAudioRecorder(url: audioFilename, settings: recordSetting)
             soundRecorder.delegate = self
             soundRecorder.prepareToRecord()
         } catch {

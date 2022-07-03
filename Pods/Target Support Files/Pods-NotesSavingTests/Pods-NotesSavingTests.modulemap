@@ -1,0 +1,6 @@
+framework module Pods_NotesSavingTests {
+  umbrella header "Pods-NotesSavingTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
