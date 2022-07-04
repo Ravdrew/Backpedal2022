@@ -85,15 +85,28 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     }
     
     @IBAction func exportButton(_ sender: Any) {
-        var audioTrack: Data?
+        let cnote = foundData[0]
         
-        do{
+        //getDocumentsDirectory().appendingPathComponent("\(cnote.max_id)AudioFile.m4a")
+        do {
+            let originPath = getDocumentsDirectory().appendingPathComponent(cnote.end_url!)
+            if(TitleTextBox.text != ""){
+                cnote.end_url = "\(TitleTextBox.text!).m4a"
+            }
+            let destinationPath = getDocumentsDirectory().appendingPathComponent(cnote.end_url!)
+            try FileManager.default.moveItem(at: originPath, to: destinationPath)
+        } catch let error as NSError {
+            print(error)
+        }
+        
+        let audioTrackURL = getDocumentsDirectory().appendingPathComponent(cnote.end_url!)
+        /*do{
             audioTrack = try Data(contentsOf: soundRecorder.url)
         } catch {
             audioTrack = nil
-        }
+        }*/
         
-        let activityVC = UIActivityViewController(activityItems: [Write.text ?? "", audioTrack ?? ""], applicationActivities: nil)
+        let activityVC = UIActivityViewController(activityItems: [Write.text ?? "", audioTrackURL], applicationActivities: nil)
         activityVC.popoverPresentationController?.sourceView = self.view
         
         self.present(activityVC, animated: true, completion: nil)
@@ -354,8 +367,8 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     }
     
     func setupRecorder() {
-        let audioFilename = getDocumentsDirectory().appendingPathComponent("\(selected)AudioFile.m4a")
-        //cnote.audio = audioFilename as! NSData?
+        let cnote = foundData[0]
+        let audioFilename = getDocumentsDirectory().appendingPathComponent(cnote.end_url!)
         let recordSetting = [ AVFormatIDKey : kAudioFormatAppleLossless,
                               AVEncoderAudioQualityKey : AVAudioQuality.max.rawValue,
                               AVEncoderBitRateKey : 320000,
@@ -372,10 +385,8 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     }
     
     func setupPlayer() {
-        //let audioFilename = getDocumentsDirectory().appendingPathComponent("\(selected)AudioFile.m4a")
         let cnote = foundData[0]
-    
-        
+
         do {
             soundPlayer = try AVAudioPlayer(data: cnote.audio!)
             soundPlayer.delegate = self

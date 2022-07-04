@@ -20,6 +20,7 @@ extension SavedNotes {
     @NSManaged public var content: String?
     @NSManaged public var name: String?
     @NSManaged public var nval: Int32
+    @NSManaged public var end_url: String?
     @NSManaged public var audio: Data?
 
 }

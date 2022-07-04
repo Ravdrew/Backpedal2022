@@ -10,7 +10,6 @@ import UIKit
 import CoreData
 
 var n:Int = 0
-var ndel:Int = 0
 var deletedNote:Int = 0
 var prevIndexRow:Int = 0
 var prevIndexPath:IndexPath = [0, 0]
@@ -201,17 +200,20 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         if (increment){
             n+=1
+            let defaults = UserDefaults.standard
+            defaults.set(defaults.integer(forKey: "totalNumEver") + 1, forKey: "totalNumEver")
             guard let entity = NSEntityDescription.entity(forEntityName: "SavedNotes", in: managedObjectContext) else {fatalError("Could not find entity description!")}
             let note = SavedNotes(entity: entity, insertInto: managedObjectContext)
-            note.name = "Note \(n + ndel)"
+            
+            note.name = "Note \(defaults.integer(forKey: "totalNumEver"))"
             note.content = ""
             note.nval = Int32(n)
+            note.end_url = "\(String(defaults.integer(forKey: "totalNumEver")))AudioFile.m4a"
             cell.textLabel!.text = note.name
             //print("configuring cell")
             //print("n= \(n)")
             increment = false
             //print(cell.textLabel!.text!)
-            
         }
         else{
             //print("else")
@@ -220,6 +222,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             let cnote = reloadData(finding: Int32(prev - (n - 1)))
             cell.textLabel?.text = cnote.name
             //renameCell(cell)
+            
         }
     }
     
@@ -295,7 +298,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                 //deleting = true
                 tableView.deleteRows(at: [indexPath!], with: .fade)
                 increment = false
-                ndel += 1
                 deletedNote = (n - indexPath!.row)
                 //print("deletedNote = \(deletedNote)")
                 let dnote = reloadData(finding: Int32(deletedNote))

@@ -7,11 +7,12 @@
     <entity name="SavedNotes" representedClassName="SavedNotes" syncable="YES">
         <attribute name="audio" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="content" attributeType="String"/>
+        <attribute name="end_url" optional="YES" attributeType="String"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="nval" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
     <elements>
         <element name="Event" positionX="261" positionY="189" width="128" height="60"/>
-        <element name="SavedNotes" positionX="261" positionY="180" width="128" height="89"/>
+        <element name="SavedNotes" positionX="261" positionY="180" width="128" height="104"/>
     </elements>
 </model>
