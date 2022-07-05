@@ -333,8 +333,13 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 cnote.name = self.TitleTextBox.text!
             }
             cnote.content = self.Write.text
-            loaded = false
-            
+            print(self.Write.text)
+            do{
+                print("save successful")
+                try managedObjectContext.save()
+            } catch {
+                print("failed to save in detail")
+            }
         }
     }
     

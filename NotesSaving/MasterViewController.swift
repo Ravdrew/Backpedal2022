@@ -19,11 +19,10 @@ var foundData = [SavedNotes]()
 var deleting:Bool = false
 var amount:Int = 0
 var savehit:Bool = false
-
+var managedObjectContext = CoreDataManager.sharedManager.persistentContainer.viewContext
 
 class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
-    var managedObjectContext = CoreDataManager.sharedManager.persistentContainer.viewContext
     var detailViewController: DetailViewController? = nil
     
     func saveData(){
