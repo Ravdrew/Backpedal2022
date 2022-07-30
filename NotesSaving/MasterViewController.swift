@@ -11,15 +11,47 @@ import CoreData
 
 var n:Int = 0
 var deletedNote:Int = 0
-var prevIndexRow:Int = 0
 var prevIndexPath:IndexPath = [0, 0]
 var increment:Bool = false
 var selected = 0
 var foundData = [SavedNotes]()
+var lastData = [SavedNotes]()
 var deleting:Bool = false
 var amount:Int = 0
 var savehit:Bool = false
+var firstNote:Bool = false
 var managedObjectContext = CoreDataManager.sharedManager.persistentContainer.viewContext
+
+func reloadData(finding:Int32) -> SavedNotes{
+    let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "SavedNotes")
+    
+    do {
+        if let results = try managedObjectContext.fetch(fetchRequest) as? [SavedNotes]{
+            //print(results)
+            //print("results count is \(results.count)")
+            if(foundData.count > 0){
+                if(lastData.count > 0){
+                    lastData[0] = foundData[0]
+                }
+                else{
+                    lastData.append(foundData[0])
+                }
+                foundData.remove(at: 0)
+            }
+            for thing in results{
+                if thing.nval == finding{
+                    foundData.append(thing)
+                    break
+                }
+            }
+            //print("lastData = \(lastData)")
+                
+        }
+    } catch {
+        fatalError("Error Reloading Data")
+    }
+        return foundData[0]
+}
 
 class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
@@ -34,30 +66,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         }
     }
     
-    func reloadData(finding:Int32) -> SavedNotes{
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "SavedNotes")
-        
-        do {
-            if let results = try managedObjectContext.fetch(fetchRequest) as? [SavedNotes]{
-                //print(results)
-                //print("results count is \(results.count)")
-                if(foundData.count > 0){
-                    foundData.remove(at: 0)
-                }
-                for thing in results{
-                    if thing.nval == finding{
-                        foundData.append(thing)
-                        break
-                    }
-                }
-                //print("lastData = \(lastData)")
-                    
-            }
-        } catch {
-            fatalError("Error Reloading Data")
-        }
-            return foundData[0]
-    }
     
     func retrieveCount() -> Int{
         //print("n started")
@@ -79,7 +87,8 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        print("viewdidload")
+        print("MASTER")
+        self.title = "Backpedal"
         /*
         let cnote = reloadData(finding: Int32(1))
         print(cnote.name, cnote.content)*/
@@ -100,15 +109,18 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             let cell = tableView.cellForRow(at: prevIndexPath)!
             renameCell(cell)
             saveData()
-            
-            //returnCell(cell)
         }
+        
+        if(retrieveCount()<1){
+            firstNote = true
+            insertNewObject(self)
+        }
+        
         
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         print("viewWillDisappear")
-        reloadData(finding: Int32(selected))
     }
 
     @objc
@@ -127,6 +139,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             let nserror = error as NSError
             fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
         }
+        print("newObjCreated")
     }
 
     // MARK: - Segues
@@ -144,10 +157,16 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     }
 
     // MARK: - Table View
-
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         return fetchedResultsController.sections?.count ?? 0
     }
+    
+    /*override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        let sectionName:String = "Backpedal"
+        
+        return sectionName
+    }*/
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let sectionInfo = fetchedResultsController.sections![section]
@@ -169,9 +188,13 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     
         //prevIndexPath = tableView.indexPathForSelectedRow
+        if(foundData.count>0){
+            let cell = tableView.cellForRow(at: prevIndexPath)!
+            cell.textLabel?.text = foundData[0].name
+        }
         selected = (n - indexPath.row)
-        prevIndexRow = indexPath.row
         prevIndexPath = tableView.indexPathForSelectedRow!
+        reloadData(finding: Int32(selected))
         //print(tableView.indexPathForSelectedRow!)
         //print("selected = \(selected)")
         //print(selected)
@@ -198,6 +221,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     func configureCell(_ cell: UITableViewCell, withEvent event: Event) {
         
         if (increment){
+            print("incrimmenting")
             n+=1
             let defaults = UserDefaults.standard
             defaults.set(defaults.integer(forKey: "totalNumEver") + 1, forKey: "totalNumEver")
@@ -214,8 +238,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             increment = false
             //print(cell.textLabel!.text!)
         }
-        else{
-            //print("else")
+        else if(firstNote == false){
             let prev = retrieveCount()
             n+=1
             let cnote = reloadData(finding: Int32(prev - (n - 1)))

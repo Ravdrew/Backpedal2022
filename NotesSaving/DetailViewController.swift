@@ -10,6 +10,7 @@ import UIKit
 import CoreData
 import AVFoundation
 
+
 var loaded:Bool = false
 var currentButtonState:Int = 0
 var recording:Bool = false
@@ -24,7 +25,9 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
+    @IBOutlet weak var exportButtonOutlet: UIBarButtonItem!
     
+    @IBOutlet weak var PleaseSelectBlock: UILabel!
     @IBOutlet weak var Write: UITextView!
     @IBOutlet weak var TitleTextBox: UITextField!
     
@@ -36,6 +39,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             }
         }
     }
+    @IBOutlet weak var MaxTime: UILabel!
     @IBOutlet weak var TimeReader: UILabel!
     @IBOutlet weak var Slider: UISlider!
     @IBAction func Slid(_ sender: Any) {
@@ -137,6 +141,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 
                 timeStampColor()
                 setupPlayer()
+                updateMaxTime()
                 Slider.maximumValue = Float(soundPlayer.duration)
                 Slider.isUserInteractionEnabled = true
             }
@@ -168,7 +173,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     @objc func updateTimer(){
         let minutes = floor(soundPlayer.currentTime/60)
-        let seconds = round(soundPlayer.currentTime - minutes * 60)
+        let seconds = floor(soundPlayer.currentTime - minutes * 60)
         if minutes < 10{//converts single digits numbers to 0X and keeps double digit numbers as is
             string_minutes = "0\(Int(minutes))"
             //print("sec: \(string_minutes)")
@@ -188,12 +193,33 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         Slider.value = Float(soundPlayer.currentTime)
     }
     
+    func updateMaxTime(){
+        let minutes = floor(soundPlayer.duration/60)
+        let seconds = floor(soundPlayer.duration - minutes * 60)
+        if minutes < 10{//converts single digits numbers to 0X and keeps double digit numbers as is
+            string_minutes = "0\(Int(minutes))"
+            //print("sec: \(string_minutes)")
+        }
+        else{
+            string_minutes = "\(Int(minutes))"
+        }
+            
+        if seconds < 10{
+            string_seconds = "0\(Int(seconds))"
+                //print("sec: \(string_seconds)")
+        }
+        else{
+            string_seconds = "\(Int(seconds))"
+        }
+        self.MaxTime.text = ("\(string_minutes):\(string_seconds)")
+    }
+    
     func buttonModification(){
         if currentButtonState == 0 || currentButtonState == 2{
             if #available(iOS 13.0, *) {
                 let pauseImage = UIImage(systemName: "pause.circle")
                 self.MultiButton.setBackgroundImage(pauseImage, for: [])
-                self.MultiButton.tintColor = UIColor.systemGray
+                //self.MultiButton.tintColor = UIColor.systemGray
                 currentButtonState = 1
             }
         }
@@ -201,7 +227,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             if #available(iOS 13.0, *) {
                 let playImage = UIImage(systemName: "play.circle")
                 self.MultiButton.setBackgroundImage(playImage, for: [])
-                self.MultiButton.tintColor = UIColor.systemBlue
+                //self.MultiButton.tintColor = UIColor.systemBlue
                 currentButtonState = 2
             }
         }
@@ -211,7 +237,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     @objc func backPedal(){
         if(currentButtonState != 2){
             let minutes = floor(soundRecorder.currentTime/60)
-            let seconds = round(soundRecorder.currentTime - minutes * 60)
+            let seconds = floor(soundRecorder.currentTime - minutes * 60)
             if minutes < 10{//converts single digits numbers to 0X and keeps double digit numbers as is
                 string_minutes = "0\(Int(minutes))"
                 //print("sec: \(string_minutes)")
@@ -233,11 +259,11 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     func timeStampColor(){
         if recording == true{
-            TimeReader.textColor = UIColor.systemRed
+            TimeReader.textColor = UIColor(named: "OrangeRedCustom")
             TimeReader.text = "REC"
         }
         else{
-            TimeReader.textColor = UIColor.black
+            TimeReader.textColor = UIColor.white
             TimeReader.text = "00:00"
         }
     }
@@ -248,7 +274,6 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             //soundPlayer.currentTime = soundPlayer.duration
             let playImage = UIImage(systemName: "play.circle")
             self.MultiButton.setBackgroundImage(playImage, for: [])
-            self.MultiButton.tintColor = UIColor.systemBlue
             currentButtonState = 2
         }
     }
@@ -276,6 +301,8 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         
         let backpedalButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(backPedal))
         
+        //let lastTimeStamp = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(backPedal))
+        
         /*if #available(iOS 13.0, *) {
             let playImage = UIImage(systemName: "play.circle")
             backpedalButton.setImage(playImage, for: [], barMetrics: .default)
@@ -284,6 +311,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         toolbar.setItems([flexibleSpace, backpedalButton], animated: false)
         
         Write.inputAccessoryView = toolbar
+        
         
         let recordingSession = AVAudioSession.sharedInstance()
         do {
@@ -296,26 +324,47 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         configureView()
         // Do any additional setup after loading the view.
         //print(notesTitle)
-        let cnote = foundData[0]
-        if(cnote.audio == nil){
-            currentButtonState = 0
-            setupRecorder()
+        print("DETAIL")
+        
+        
+        if(foundData.count > 0){
+            PleaseSelectBlock.isHidden = true
+            TitleTextBox.isHidden = false
+            exportButtonOutlet.isEnabled = true
+            let cnote = foundData[0]
+            if(cnote.audio == nil){
+                currentButtonState = 0
+                setupRecorder()
+            }
+            else{
+                setupPlayer()
+                currentButtonState = 1
+                buttonModification()
+                Slider.maximumValue = Float(soundPlayer.duration)
+                Slider.isUserInteractionEnabled = true
+                updateMaxTime()
+            }
+            self.TitleTextBox.text = cnote.name
+            self.Write.text = cnote.content
+            loaded = true
         }
         else{
-            setupPlayer()
-            currentButtonState = 1
-            buttonModification()
-            Slider.maximumValue = Float(soundPlayer.duration)
-            Slider.isUserInteractionEnabled = true
+            PleaseSelectBlock.isHidden = false
+            TitleTextBox.isHidden = true
+            exportButtonOutlet.isEnabled = false
+            
         }
-        self.TitleTextBox.text = cnote.name
-        self.Write.text = cnote.content
-        loaded = true
+        
+    
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         if (loaded){
-            let cnote = foundData[0]
+            var cnote = foundData[0]
+            if UIDevice.current.userInterfaceIdiom == .pad{
+                print("ipad")
+                cnote = lastData[0]
+            }
             if self.TitleTextBox.text != ""{
                 cnote.name = self.TitleTextBox.text!
             }
@@ -328,12 +377,15 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     @objc func detailWillResignActive(){
         if (loaded){
-            let cnote = foundData[0]
+            var cnote = foundData[0]
+            if UIDevice.current.userInterfaceIdiom == .pad{
+                print("ipad")
+                cnote = lastData[0]
+            }
             if self.TitleTextBox.text != ""{
                 cnote.name = self.TitleTextBox.text!
             }
             cnote.content = self.Write.text
-            print(self.Write.text)
             do{
                 print("save successful")
                 try managedObjectContext.save()
