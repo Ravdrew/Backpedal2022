@@ -8,7 +8,9 @@
 
 import UIKit
 import CoreData
+import Foundation
 import AVFoundation
+import IQKeyboardManagerSwift
 
 
 var loaded:Bool = false
@@ -19,9 +21,11 @@ var string_minutes:String = "00"
 var AudioTimer = Timer()
 
 
-class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
+class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPlayerDelegate, UITextViewDelegate {
     
     var playerLoaded:Bool = false
+    var time_stamps = Array<Double>()
+    var alert_index = -1
     
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
@@ -88,6 +92,42 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         }
     }
     
+
+    @IBAction func PrevAlert(_ sender: Any) {
+        if recording == false && currentButtonState >= 1{
+            if(time_stamps.count > 0){
+                alert_index -= 1
+            }
+            if(alert_index < 0){
+                alert_index = time_stamps.count - 1
+            }
+            updateAudioFromAlert()
+        }
+    }
+    
+    @IBAction func NextAlert(_ sender: Any) {
+        if recording == false && currentButtonState >= 1{
+            if(time_stamps.count > 0){
+                alert_index += 1
+            }
+            if(alert_index >= time_stamps.count){
+                alert_index = 0
+            }
+            updateAudioFromAlert()
+        }
+    }
+    
+    func updateAudioFromAlert(){
+        if(time_stamps.count > 0){
+            soundPlayer.pause()
+            currentButtonState = 1
+            buttonModification()
+            //print(alert_index)
+            soundPlayer.currentTime = time_stamps[alert_index]
+            updateTimer()
+        }
+    }
+
     @IBAction func exportButton(_ sender: Any) {
         let cnote = foundData[0]
         
@@ -169,7 +209,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     func stopTimer(){
         AudioTimer.invalidate()
-    } //ooga booga
+    } 
     
     @objc func updateTimer(){
         let minutes = floor(soundPlayer.currentTime/60)
@@ -254,6 +294,8 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 string_seconds = "\(Int(seconds))"
             }
             Write.text += ("\n\(string_minutes):\(string_seconds)\n")
+            
+            time_stamps.append(soundRecorder.currentTime)
         }
     }
     
@@ -292,6 +334,15 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        IQKeyboardManager.shared.enable = false
+        
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(updateTextView(notification:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+            
+        NotificationCenter.default.addObserver(self, selector: #selector(updateTextView(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        
+        
         NotificationCenter.default.addObserver(self, selector: #selector(detailWillResignActive), name: UIApplication.willResignActiveNotification,object: nil)
         
         let toolbar = UIToolbar()
@@ -324,8 +375,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         configureView()
         // Do any additional setup after loading the view.
         //print(notesTitle)
-        print("DETAIL")
-        
+        //print("DETAIL")
         
         if(foundData.count > 0){
             PleaseSelectBlock.isHidden = true
@@ -343,6 +393,17 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 Slider.maximumValue = Float(soundPlayer.duration)
                 Slider.isUserInteractionEnabled = true
                 updateMaxTime()
+                let alert_string_pulled:String = cnote.alerts ?? ""
+                //print("alert_string \(alert_string_pulled)")
+                let time_stamps_strings = alert_string_pulled.split(separator: ",")
+                //print("time_stamps_strings \(time_stamps_strings)")
+                for alert in time_stamps_strings{
+                    if(alert != ""){
+                        print("alert: \(alert)")
+                        time_stamps.append(Double(alert)!)
+                    }
+                }
+                //print("time stamps: \(time_stamps)")
             }
             self.TitleTextBox.text = cnote.name
             self.Write.text = cnote.content
@@ -371,11 +432,24 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             cnote.content = self.Write.text
             loaded = false
             
-            if(playerLoaded) {soundPlayer.pause()}
+            var alert_string:String = ""
+            
+            for alert in time_stamps{
+                alert_string += "\(alert),"
+            }
+            cnote.alerts = alert_string
+            print("cnote.alerts: \(cnote.alerts)")
+            
+            do{
+                print("save dis")
+                try managedObjectContext.save()
+            } catch {
+                print("failed to save in dis")
+            }
         }
     }
     
-    @objc func detailWillResignActive(){
+    @objc private func detailWillResignActive(){
         if (loaded){
             var cnote = foundData[0]
             if UIDevice.current.userInterfaceIdiom == .pad{
@@ -386,13 +460,58 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 cnote.name = self.TitleTextBox.text!
             }
             cnote.content = self.Write.text
+            
+            //if(playerLoaded) {soundPlayer.pause()}
+            
+            
             do{
-                print("save successful")
+                print("save resign")
                 try managedObjectContext.save()
             } catch {
-                print("failed to save in detail")
+                print("failed to save in resign")
             }
         }
+    }
+    
+    
+    @objc func updateTextView(notification : Notification)
+    {
+        var _kbSize:CGSize!
+                
+        if let info = notification.userInfo {
+
+        let frameEndUserInfoKey = UIResponder.keyboardFrameEndUserInfoKey
+        
+        //  Getting UIKeyboardSize.
+        if let kbFrame = info[frameEndUserInfoKey] as? CGRect {
+            
+            let screenSize = UIScreen.main.bounds
+            
+            //Calculating actual keyboard displayed size, keyboard frame may be different when hardware keyboard is attached (Bug ID: #469) (Bug ID: #381)
+            let intersectRect = kbFrame.intersection(screenSize)
+            
+                if intersectRect.isNull {
+                    _kbSize = CGSize(width: screenSize.size.width, height: 0)
+                } else {
+                    _kbSize = intersectRect.size
+                }
+            }
+        }
+
+        if notification.name == UIResponder.keyboardWillHideNotification{
+            Write.contentInset = UIEdgeInsets.zero
+        }
+        else
+        {
+            Write.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: _kbSize.height - 73, right: 0)
+            Write.scrollIndicatorInsets = Write.contentInset
+        }
+
+        let screensize: CGRect = UIScreen.main.bounds
+        print(screensize)
+        print(_kbSize.height)
+        Write.scrollRangeToVisible(Write.selectedRange)
+
     }
     
     var detailItem: Event? {

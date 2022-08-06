@@ -5,6 +5,7 @@
         <userInfo/>
     </entity>
     <entity name="SavedNotes" representedClassName="SavedNotes" syncable="YES">
+        <attribute name="alerts" optional="YES" attributeType="String"/>
         <attribute name="audio" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="content" attributeType="String"/>
         <attribute name="end_url" optional="YES" attributeType="String"/>
@@ -13,6 +14,6 @@
     </entity>
     <elements>
         <element name="Event" positionX="261" positionY="189" width="128" height="60"/>
-        <element name="SavedNotes" positionX="261" positionY="180" width="128" height="104"/>
+        <element name="SavedNotes" positionX="261" positionY="180" width="128" height="119"/>
     </elements>
 </model>
