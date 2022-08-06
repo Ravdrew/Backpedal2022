@@ -58,7 +58,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 soundPlayer.currentTime = TimeInterval(Slider.value)
             }
             
-            updateTimer()
+            updatePlayTimer()
         }
     }
     
@@ -70,7 +70,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             buttonModification()
             soundPlayer.currentTime -= TimeInterval(10)
             print(soundPlayer.currentTime)
-            updateTimer()
+            updatePlayTimer()
         }
     }
     
@@ -88,7 +88,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 soundPlayer.currentTime = postModification
             }
             print(soundPlayer.currentTime)
-            updateTimer()
+            updatePlayTimer()
         }
     }
     
@@ -124,7 +124,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             buttonModification()
             //print(alert_index)
             soundPlayer.currentTime = time_stamps[alert_index]
-            updateTimer()
+            updatePlayTimer()
         }
     }
 
@@ -170,30 +170,23 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             recording = true
             timeStampColor()
             soundRecorder.record()
+            initRecTimer()
             
         }
         
         if currentButtonState == 1{ // stop recording/stop playing
             if recording == true{
-                recording = false;
-                soundRecorder.stop()
-                saveAudioToCD()
-                
-                timeStampColor()
-                setupPlayer()
-                updateMaxTime()
-                Slider.maximumValue = Float(soundPlayer.duration)
-                Slider.isUserInteractionEnabled = true
+                wrapUpRecordingProtocol()
             }
             
             else if recording == false{
                 soundPlayer.pause()
-                stopTimer()
+                stopPlayTimer()
             }
         }
         
         if currentButtonState == 2{// play audio
-            initTimer()
+            initPlayTimer()
             //print("slider_max = \(Slider.maximumValue),duration= \(Float(soundPlayer.duration))")
             //print("SP currentButtonState time = \(soundPlayer.currentTime), Slider.val = \(TimeInterval(Slider.value))")
             soundPlayer.play()
@@ -203,15 +196,23 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         
     }
     
-    func initTimer(){
-        AudioTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(updateTimer), userInfo: nil, repeats: true)
+    func initPlayTimer(){
+        AudioTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(updatePlayTimer), userInfo: nil, repeats: true)
     }
     
-    func stopTimer(){
+    func stopPlayTimer(){
         AudioTimer.invalidate()
-    } 
+    }
     
-    @objc func updateTimer(){
+    func initRecTimer(){
+        AudioTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(updateRecTimer), userInfo: nil, repeats: true)
+    }
+    
+    func stopRecTimer(){
+        AudioTimer.invalidate()
+    }
+    
+    @objc func updatePlayTimer(){
         let minutes = floor(soundPlayer.currentTime/60)
         let seconds = floor(soundPlayer.currentTime - minutes * 60)
         if minutes < 10{//converts single digits numbers to 0X and keeps double digit numbers as is
@@ -233,7 +234,30 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         Slider.value = Float(soundPlayer.currentTime)
     }
     
-    func updateMaxTime(){
+    
+    @objc func updateRecTimer(){
+        let minutes = floor(soundRecorder.currentTime/60)
+        let seconds = floor(soundRecorder.currentTime - minutes * 60)
+        if minutes < 10{//converts single digits numbers to 0X and keeps double digit numbers as is
+            string_minutes = "0\(Int(minutes))"
+            //print("sec: \(string_minutes)")
+        }
+        else{
+            string_minutes = "\(Int(minutes))"
+        }
+            
+        if seconds < 10{
+            string_seconds = "0\(Int(seconds))"
+                //print("sec: \(string_seconds)")
+        }
+        else{
+            string_seconds = "\(Int(seconds))"
+        }
+        self.MaxTime.text = ("\(string_minutes):\(string_seconds)")
+        print("\(string_minutes):\(string_seconds)")
+    }
+    
+    func updateMaxTimer(){
         let minutes = floor(soundPlayer.duration/60)
         let seconds = floor(soundPlayer.duration - minutes * 60)
         if minutes < 10{//converts single digits numbers to 0X and keeps double digit numbers as is
@@ -392,7 +416,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 buttonModification()
                 Slider.maximumValue = Float(soundPlayer.duration)
                 Slider.isUserInteractionEnabled = true
-                updateMaxTime()
+                updateMaxTimer()
                 let alert_string_pulled:String = cnote.alerts ?? ""
                 //print("alert_string \(alert_string_pulled)")
                 let time_stamps_strings = alert_string_pulled.split(separator: ",")
@@ -446,6 +470,25 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             } catch {
                 print("failed to save in dis")
             }
+        }
+    }
+    
+    func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
+        wrapUpRecordingProtocol()
+    }
+    
+    func wrapUpRecordingProtocol(){
+        if(recording == true){
+            recording = false;
+            soundRecorder.stop()
+            saveAudioToCD()
+            stopRecTimer()
+            timeStampColor()
+            setupPlayer()
+            updateMaxTimer()
+            Slider.maximumValue = Float(soundPlayer.duration)
+            Slider.isUserInteractionEnabled = true
+            
         }
     }
     

@@ -20,10 +20,14 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<false/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string></string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
