@@ -374,7 +374,12 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.flexibleSpace, target: nil, action: nil)
         
-        let backpedalButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(backPedal))
+        let backpedalButton = UIBarButtonItem(image: UIImage(systemName: "exclamationmark.square"), style: .plain, target: self, action: #selector(backPedal))
+        
+        //UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(backPedal))
+        
+        backpedalButton.tintColor = UIColor(named: "CoolGreen")
+        //backpedalButton.image = UIImage(systemName: "exclamationmark.square")
         
         //let lastTimeStamp = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.action, target: self, action: #selector(backPedal))
         
