@@ -87,7 +87,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        print("MASTER")
+        //print("MASTER")
         self.title = "Backpedal"
         /*
         let cnote = reloadData(finding: Int32(1))
@@ -120,7 +120,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        print("viewWillDisappear")
+        //print("viewWillDisappear")
     }
 
     @objc
@@ -139,7 +139,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             let nserror = error as NSError
             fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
         }
-        print("newObjCreated")
+        //print("newObjCreated")
     }
 
     // MARK: - Segues
@@ -188,9 +188,13 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     
         //prevIndexPath = tableView.indexPathForSelectedRow
+    
         if(foundData.count>0){
+            
             let cell = tableView.cellForRow(at: prevIndexPath)!
-            cell.textLabel?.text = foundData[0].name
+            cell.textLabel?.text = foundData[0].name //CHANGE FROM foundData
+            print("found: \(foundData[0].name)")
+            
         }
         selected = (n - indexPath.row)
         prevIndexPath = tableView.indexPathForSelectedRow!
@@ -221,7 +225,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     func configureCell(_ cell: UITableViewCell, withEvent event: Event) {
         
         if (increment){
-            print("incrimmenting")
             n+=1
             let defaults = UserDefaults.standard
             defaults.set(defaults.integer(forKey: "totalNumEver") + 1, forKey: "totalNumEver")

@@ -69,7 +69,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             currentButtonState = 1
             buttonModification()
             soundPlayer.currentTime -= TimeInterval(10)
-            print(soundPlayer.currentTime)
+            //print(soundPlayer.currentTime)
             updatePlayTimer()
         }
     }
@@ -87,7 +87,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             else{
                 soundPlayer.currentTime = postModification
             }
-            print(soundPlayer.currentTime)
+            //print(soundPlayer.currentTime)
             updatePlayTimer()
         }
     }
@@ -324,14 +324,14 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     }
     
     func timeStampColor(){
-        if recording == true{
+        /*if recording == true{
             TimeReader.textColor = UIColor(named: "OrangeRedCustom")
             TimeReader.text = "REC"
         }
         else{
             TimeReader.textColor = UIColor.white
             TimeReader.text = "00:00"
-        }
+        }*/
     }
     
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
@@ -428,7 +428,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 //print("time_stamps_strings \(time_stamps_strings)")
                 for alert in time_stamps_strings{
                     if(alert != ""){
-                        print("alert: \(alert)")
+                        //print("alert: \(alert)")
                         time_stamps.append(Double(alert)!)
                     }
                 }
@@ -467,10 +467,10 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 alert_string += "\(alert),"
             }
             cnote.alerts = alert_string
-            print("cnote.alerts: \(cnote.alerts)")
+            //print("cnote.alerts: \(cnote.alerts)")
             
             do{
-                print("save dis")
+                //print("save dis")
                 try managedObjectContext.save()
             } catch {
                 print("failed to save in dis")
@@ -556,8 +556,8 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         }
 
         let screensize: CGRect = UIScreen.main.bounds
-        print(screensize)
-        print(_kbSize.height)
+        //print(screensize)
+        //print(_kbSize.height)
         Write.scrollRangeToVisible(Write.selectedRange)
 
     }
