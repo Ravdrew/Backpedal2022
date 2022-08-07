@@ -20,6 +20,7 @@ var deleting:Bool = false
 var amount:Int = 0
 var savehit:Bool = false
 var firstNote:Bool = false
+var indexPathModifier:Int = 0
 var managedObjectContext = CoreDataManager.sharedManager.persistentContainer.viewContext
 
 func reloadData(finding:Int32) -> SavedNotes{
@@ -126,6 +127,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     @objc
     func insertNewObject(_ sender: Any) {
         increment = true
+        indexPathModifier += 1
         let context = self.fetchedResultsController.managedObjectContext
         let newEvent = Event(context: context)
         // If appropriate, configure the new managed object.
@@ -189,11 +191,14 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     
         //prevIndexPath = tableView.indexPathForSelectedRow
     
-        if(foundData.count>0){
-            
-            let cell = tableView.cellForRow(at: prevIndexPath)!
-            cell.textLabel?.text = foundData[0].name //CHANGE FROM foundData
+        if(foundData.count > 0 && lastData.count > 0){
+            print(foundData[0].name)
+            print(lastData[0].name)
+            let indexPathForEdit = IndexPath(row: prevIndexPath.row + indexPathModifier, section: 0)
+            let cell = tableView.cellForRow(at: indexPathForEdit)
+            cell?.textLabel?.text = foundData[0].name //CHANGE FROM foundData
             print("found: \(foundData[0].name)")
+            indexPathModifier = 0
             
         }
         selected = (n - indexPath.row)
@@ -231,14 +236,25 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             guard let entity = NSEntityDescription.entity(forEntityName: "SavedNotes", in: managedObjectContext) else {fatalError("Could not find entity description!")}
             let note = SavedNotes(entity: entity, insertInto: managedObjectContext)
             
-            note.name = "Note \(defaults.integer(forKey: "totalNumEver"))"
-            note.content = ""
-            note.nval = Int32(n)
-            note.end_url = "\(String(defaults.integer(forKey: "totalNumEver")))AudioFile.m4a"
-            cell.textLabel!.text = note.name
+            if(firstNote){
+                note.name = "Tutorial"
+                note.content = "Welcome to Backpedal! An app designed to help hearing impaired students and professionals note-take.\n\nEssentially, Backpedal is a notes and audio recording app merged into one.\n\nOne special feature is the 'alerts' system. If you click on the ! button (found on bar over your keyboard) while recording, Backpedal will record a timestamp.\n\nOnce you finish the recording, you can easily cycle through timestamps using the left and right arrow buttons. So, if you ever miss anything during a lecture, video, or anything else, hit the alert button and be stress-free!\n\nFinally, feel free to export your notes and audio files to Google Drive, or any other service, as soon as your done.\n\nI hope you enjoy your Backpedal experience!"
+                note.nval = Int32(n)
+                note.end_url = "\(String(defaults.integer(forKey: "totalNumEver")))AudioFile.m4a"
+                cell.textLabel!.text = note.name
+            }
+            else{
+                note.name = "Note \(defaults.integer(forKey: "totalNumEver"))"
+                note.content = ""
+                note.nval = Int32(n)
+                note.end_url = "\(String(defaults.integer(forKey: "totalNumEver")))AudioFile.m4a"
+                cell.textLabel!.text = note.name
+            }
             //print("configuring cell")
             //print("n= \(n)")
             increment = false
+            
+            
             //print(cell.textLabel!.text!)
         }
         else if(firstNote == false){
@@ -336,6 +352,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                 }
 
                 n -= 1
+                
                 saveData()
                 //print("deleting data")
             case .update:
