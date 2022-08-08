@@ -19,13 +19,16 @@ var recording:Bool = false
 var string_seconds:String = "00"
 var string_minutes:String = "00"
 var AudioTimer = Timer()
+var noteIsDeleted:Bool = false
 
+public let deleteNotification = Notification.Name("deleteNotification")
 
 class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPlayerDelegate, UITextViewDelegate {
     
     var playerLoaded:Bool = false
     var time_stamps = Array<Double>()
     var alert_index = -1
+    
     
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
@@ -36,10 +39,15 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     @IBOutlet weak var TitleTextBox: UITextField!
     
     @IBAction func TitleChange(_ sender: Any) {
-        if(loaded){
+        if(loaded && noteIsDeleted == false){
             if self.TitleTextBox.text != ""{
-                let cnote = foundData[0]
+                /*let cnote = foundData[0]
+                //print(cnote)
                 cnote.name = self.TitleTextBox.text!
+                print(cnote.name)*/
+                if UIDevice.current.userInterfaceIdiom == .pad{
+                    chosenCell?.textLabel?.text = self.TitleTextBox.text!
+                }
             }
         }
     }
@@ -62,6 +70,12 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         }
     }
     
+    @objc func coverAll(){
+        PleaseSelectBlock.isHidden = false
+        TitleTextBox.isHidden = true
+        exportButtonOutlet.isEnabled = false
+        noteIsDeleted = true
+    }
     
     @IBAction func Back10(_ sender: Any) {
         if recording == false && currentButtonState >= 1{
@@ -358,6 +372,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("loaded")
         
         IQKeyboardManager.shared.enable = false
         
@@ -366,8 +381,9 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             
         NotificationCenter.default.addObserver(self, selector: #selector(updateTextView(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         
-        
         NotificationCenter.default.addObserver(self, selector: #selector(detailWillResignActive), name: UIApplication.willResignActiveNotification,object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(coverAll), name: deleteNotification, object: nil)
         
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
@@ -411,6 +427,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             TitleTextBox.isHidden = false
             exportButtonOutlet.isEnabled = true
             let cnote = foundData[0]
+            print(cnote)
             if(cnote.audio == nil){
                 currentButtonState = 0
                 setupRecorder()
@@ -436,20 +453,22 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             }
             self.TitleTextBox.text = cnote.name
             self.Write.text = cnote.content
+            print("held name: \(cnote.name)")
             loaded = true
         }
         else{
             PleaseSelectBlock.isHidden = false
             TitleTextBox.isHidden = true
             exportButtonOutlet.isEnabled = false
-            
         }
-        
+        noteIsDeleted = false
     
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        if (loaded){
+        if (loaded && noteIsDeleted == false){
+            print("disappear")
+            //print(self.TitleTextBox.text!)
             var cnote = foundData[0]
             if UIDevice.current.userInterfaceIdiom == .pad{
                 print("ipad")
@@ -469,12 +488,14 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             cnote.alerts = alert_string
             //print("cnote.alerts: \(cnote.alerts)")
             
+            print(cnote)
             do{
                 //print("save dis")
                 try managedObjectContext.save()
             } catch {
                 print("failed to save in dis")
             }
+            
         }
     }
     
@@ -497,8 +518,10 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         }
     }
     
-    @objc private func detailWillResignActive(){
-        if (loaded){
+    @objc func detailWillResignActive(){
+        //print("detailResign")
+        if (loaded && noteIsDeleted == false){
+            print("will resign active")
             var cnote = foundData[0]
             if UIDevice.current.userInterfaceIdiom == .pad{
                 print("ipad")
@@ -507,6 +530,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             if self.TitleTextBox.text != ""{
                 cnote.name = self.TitleTextBox.text!
             }
+            print(self.Write.text)
             cnote.content = self.Write.text
             
             //if(playerLoaded) {soundPlayer.pause()}

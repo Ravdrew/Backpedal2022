@@ -15,13 +15,17 @@ var prevIndexPath:IndexPath = [0, 0]
 var increment:Bool = false
 var selected = 0
 var foundData = [SavedNotes]()
+var deleteFoundData = [SavedNotes]()
 var lastData = [SavedNotes]()
-var deleting:Bool = false
 var amount:Int = 0
 var savehit:Bool = false
 var firstNote:Bool = false
+var chosenCell:UITableViewCell?
 var indexPathModifier:Int = 0
+
 var managedObjectContext = CoreDataManager.sharedManager.persistentContainer.viewContext
+
+
 
 func reloadData(finding:Int32) -> SavedNotes{
     let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "SavedNotes")
@@ -52,6 +56,32 @@ func reloadData(finding:Int32) -> SavedNotes{
         fatalError("Error Reloading Data")
     }
         return foundData[0]
+}
+
+func reloadDataForDeletion(finding:Int32) -> SavedNotes{
+    let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "SavedNotes")
+    
+    do {
+        if let results = try managedObjectContext.fetch(fetchRequest) as? [SavedNotes]{
+            //print(results)
+            //print("results count is \(results.count)")
+            if(deleteFoundData.count > 0){
+                
+                deleteFoundData.remove(at: 0)
+            }
+            for thing in results{
+                if thing.nval == finding{
+                    deleteFoundData.append(thing)
+                    break
+                }
+            }
+            //print("lastData = \(lastData)")
+                
+        }
+    } catch {
+        fatalError("Error Reloading Data")
+    }
+        return deleteFoundData[0]
 }
 
 class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
@@ -108,7 +138,10 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         //let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: prevIndexPath)
         if n > 0{
             let cell = tableView.cellForRow(at: prevIndexPath)!
-            renameCell(cell)
+            if UIDevice.current.userInterfaceIdiom == .pad{
+            }else{
+                renameCell(cell)
+            }
             saveData()
         }
         
@@ -190,20 +223,14 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     
         //prevIndexPath = tableView.indexPathForSelectedRow
-    
-        if(foundData.count > 0 && lastData.count > 0){
-            print(foundData[0].name)
-            print(lastData[0].name)
-            let indexPathForEdit = IndexPath(row: prevIndexPath.row + indexPathModifier, section: 0)
-            let cell = tableView.cellForRow(at: indexPathForEdit)
-            cell?.textLabel?.text = foundData[0].name //CHANGE FROM foundData
-            print("found: \(foundData[0].name)")
-            indexPathModifier = 0
-            
-        }
+        //print("n \(n)")
+        //print("index row \(indexPath.row)")
+        chosenCell = tableView.cellForRow(at: prevIndexPath)
         selected = (n - indexPath.row)
         prevIndexPath = tableView.indexPathForSelectedRow!
+        //print("selected \(selected)")
         reloadData(finding: Int32(selected))
+        //print(foundData[0])
         //print(tableView.indexPathForSelectedRow!)
         //print("selected = \(selected)")
         //print(selected)
@@ -232,7 +259,11 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         if (increment){
             n+=1
             let defaults = UserDefaults.standard
+            //print("increm")
             defaults.set(defaults.integer(forKey: "totalNumEver") + 1, forKey: "totalNumEver")
+            if(defaults.integer(forKey: "totalNumEver") > 1){
+                firstNote = false
+            }
             guard let entity = NSEntityDescription.entity(forEntityName: "SavedNotes", in: managedObjectContext) else {fatalError("Could not find entity description!")}
             let note = SavedNotes(entity: entity, insertInto: managedObjectContext)
             
@@ -258,10 +289,16 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             //print(cell.textLabel!.text!)
         }
         else if(firstNote == false){
+            //print("else if")
             let prev = retrieveCount()
+            //print("prev \(prev)")
+            //print("n \(n)")
             n+=1
+            print(Int32(prev - (n - 1)))
+            
             let cnote = reloadData(finding: Int32(prev - (n - 1)))
             cell.textLabel?.text = cnote.name
+            
             //renameCell(cell)
             
         }
@@ -336,21 +373,27 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                 tableView.insertRows(at: [newIndexPath!], with: .fade)
             case .delete:
                 //print("deleting = true")
-                //deleting = true
+                if(n - indexPath!.row == selected){
+                    foundData.remove(at:0)
+                    let nc = NotificationCenter.default
+                    nc.post(name: deleteNotification, object: nil)
+                }
                 tableView.deleteRows(at: [indexPath!], with: .fade)
                 increment = false
                 deletedNote = (n - indexPath!.row)
                 //print("deletedNote = \(deletedNote)")
-                let dnote = reloadData(finding: Int32(deletedNote))
+                let dnote = reloadDataForDeletion(finding: Int32(deletedNote))
+                print(dnote)
                 managedObjectContext.delete(dnote)
                 //print("n before -1 = \(n)")
                 if deletedNote != n{
                     for num in deletedNote+1...n{
-                        let cnote = reloadData(finding: Int32(num))
-                        cnote.nval -= 1
+                        let cdnote = reloadDataForDeletion(finding: Int32(num))
+                        print(cdnote)
+                        cdnote.nval -= 1
                     }
                 }
-
+                //foundData.remove(at:0)
                 n -= 1
                 
                 saveData()
