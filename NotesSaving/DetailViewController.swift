@@ -30,6 +30,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
     var alert_index = -1
     
     
+    
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
     @IBOutlet weak var exportButtonOutlet: UIBarButtonItem!
@@ -45,9 +46,6 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
                 //print(cnote)
                 cnote.name = self.TitleTextBox.text!
                 print(cnote.name)*/
-                if UIDevice.current.userInterfaceIdiom == .pad{
-                    chosenCell?.textLabel?.text = self.TitleTextBox.text!
-                }
             }
         }
     }
@@ -148,8 +146,9 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
         //getDocumentsDirectory().appendingPathComponent("\(cnote.max_id)AudioFile.m4a")
         do {
             let originPath = getDocumentsDirectory().appendingPathComponent(cnote.end_url!)
-            if(TitleTextBox.text != ""){
-                cnote.end_url = "\(TitleTextBox.text!).m4a"
+            let hold_title = TitleTextBox.text?.replacingOccurrences(of: "/", with: "")
+            if(hold_title != ""){
+                cnote.end_url = "\(hold_title!).m4a"
             }
             let destinationPath = getDocumentsDirectory().appendingPathComponent(cnote.end_url!)
             try FileManager.default.moveItem(at: originPath, to: destinationPath)
@@ -331,7 +330,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             else{
                 string_seconds = "\(Int(seconds))"
             }
-            Write.text += ("\n\(string_minutes):\(string_seconds)\n")
+            Write.text += ("\n\n\(string_minutes):\(string_seconds)\n")
             
             time_stamps.append(soundRecorder.currentTime)
         }
@@ -427,7 +426,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             TitleTextBox.isHidden = false
             exportButtonOutlet.isEnabled = true
             let cnote = foundData[0]
-            print(cnote)
+            //print(cnote)
             if(cnote.audio == nil){
                 currentButtonState = 0
                 setupRecorder()
@@ -473,12 +472,16 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             if UIDevice.current.userInterfaceIdiom == .pad{
                 print("ipad")
                 cnote = lastData[0]
+                //print("\n\n\n\n")
+                //print(chosenCell)
+                chosenCell?.textLabel?.text = self.TitleTextBox.text!
             }
             if self.TitleTextBox.text != ""{
                 cnote.name = self.TitleTextBox.text!
             }
             cnote.content = self.Write.text
             loaded = false
+            stopRecTimer()
             
             var alert_string:String = ""
             
@@ -488,7 +491,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             cnote.alerts = alert_string
             //print("cnote.alerts: \(cnote.alerts)")
             
-            print(cnote)
+            //print(cnote)
             do{
                 //print("save dis")
                 try managedObjectContext.save()
@@ -530,7 +533,7 @@ class DetailViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPl
             if self.TitleTextBox.text != ""{
                 cnote.name = self.TitleTextBox.text!
             }
-            print(self.Write.text)
+            //print(self.Write.text)
             cnote.content = self.Write.text
             
             //if(playerLoaded) {soundPlayer.pause()}

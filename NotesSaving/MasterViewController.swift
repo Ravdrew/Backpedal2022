@@ -222,18 +222,13 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     
-        //prevIndexPath = tableView.indexPathForSelectedRow
-        //print("n \(n)")
-        //print("index row \(indexPath.row)")
         chosenCell = tableView.cellForRow(at: prevIndexPath)
+        
+        //print(chosenCell)
         selected = (n - indexPath.row)
         prevIndexPath = tableView.indexPathForSelectedRow!
         //print("selected \(selected)")
         reloadData(finding: Int32(selected))
-        //print(foundData[0])
-        //print(tableView.indexPathForSelectedRow!)
-        //print("selected = \(selected)")
-        //print(selected)
         
         
     }
@@ -370,7 +365,10 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
             case .insert:
+                //print(chosenCell)
                 tableView.insertRows(at: [newIndexPath!], with: .fade)
+                print("\n\n\n")
+                print(chosenCell)
             case .delete:
                 //print("deleting = true")
                 if(n - indexPath!.row == selected){
